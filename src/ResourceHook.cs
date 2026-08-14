@@ -4,6 +4,7 @@ using System.IO;
 using MGSC;
 using QM_CompanyTechTiers.Configs;
 using QM_CompanyTechTiers.Rewriting;
+using QM_CompanyTechTiers.Sprites;
 using QM_CompanyTechTiers.Tiering;
 using UnityEngine;
 
@@ -30,6 +31,7 @@ namespace QM_CompanyTechTiers
         private static Dictionary<string, string> _rewrites;
         private static bool _failed;
         private static bool _dumped;
+        private static bool _spritesDumped;
 
         /// <summary>The plan built during config rewriting. Null if rewriting never ran or failed.</summary>
         public static ChipTierPlan Plan { get { return _plan; } }
@@ -45,6 +47,7 @@ namespace QM_CompanyTechTiers
             _rewrites = null;
             _failed = false;
             _dumped = false;
+            _spritesDumped = false;
         }
 
         public static UnityEngine.Object Load(string path)
@@ -203,6 +206,10 @@ namespace QM_CompanyTechTiers
                 {
                     UnityEngine.Object existing;
                     if (collection.TryGetDescriptor(chip.IdFor(tier), out existing)) continue;
+
+                    if (_settings.DumpChipSpritesOnLoad)
+                        DumpSprite(chip.IdFor(tier), parent as ItemContentDescriptor);
+
                     collection.AddDescriptor(chip.IdFor(tier), parent);
                     added++;
                 }
@@ -210,6 +217,36 @@ namespace QM_CompanyTechTiers
 
             _log("Registered " + added + " tier descriptors.");
             return collection;
+        }
+
+        /// <summary>
+        /// Writes the parent chip's inventory icon under a tier id, giving the author a pre-named
+        /// copy to edit. Best-effort: a failure here must never disturb descriptor registration.
+        /// </summary>
+        private static void DumpSprite(string tierId, ItemContentDescriptor parent)
+        {
+            if (parent == null) return;
+
+            try
+            {
+                string folder = Path.Combine(_dumpFolder, "..", "sprite_dump");
+                Directory.CreateDirectory(folder);
+
+                byte[] png = SpriteDumper.ToPng(parent.Icon);
+                if (png == null) { _warn("No icon to dump for " + tierId + "."); return; }
+
+                File.WriteAllBytes(Path.Combine(folder, SpriteFileResolver.FileNameFor(tierId)), png);
+
+                if (!_spritesDumped)
+                {
+                    _spritesDumped = true;
+                    _log("Chip sprite dump writing to " + Path.GetFullPath(folder));
+                }
+            }
+            catch (Exception ex)
+            {
+                _warn("Sprite dump failed for " + tierId + ": " + ex.Message);
+            }
         }
     }
 }
