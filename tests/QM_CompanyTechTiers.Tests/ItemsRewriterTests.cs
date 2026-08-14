@@ -77,6 +77,30 @@ namespace QM_CompanyTechTiers.Tests
         }
 
         [FixtureFact]
+        public void New_rows_sit_directly_beneath_the_parent_in_low_then_mid_order()
+        {
+            var source = ConfigDocument.Parse(Fixtures.Items);
+            var plan = ChipTierPlan.Build(source, 3, 6);
+            var after = ConfigDocument.Parse(Rewritten()).Section("datadisks");
+            int idCol = after.ColumnIndex("Id");
+
+            foreach (var chip in plan.Chips)
+            {
+                var rows = after.Rows;
+                int parentIndex = -1;
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    if (rows[i].Get(idCol) == chip.ParentId) { parentIndex = i; break; }
+                }
+
+                Assert.True(parentIndex >= 0, $"Parent row {chip.ParentId} not found.");
+                Assert.True(parentIndex + 2 < rows.Count, $"Not enough rows after parent {chip.ParentId}.");
+                Assert.Equal(chip.IdFor(Tier.Low), rows[parentIndex + 1].Get(idCol));
+                Assert.Equal(chip.IdFor(Tier.Mid), rows[parentIndex + 2].Get(idCol));
+            }
+        }
+
+        [FixtureFact]
         public void Leaves_generic_chips_and_other_sections_untouched()
         {
             var before = ConfigDocument.Parse(Fixtures.Items);
