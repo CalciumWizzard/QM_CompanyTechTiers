@@ -67,5 +67,18 @@ namespace QM_CompanyTechTiers.Tests
             Assert.Null(resolver.PathFor(""));
             Assert.False(resolver.HasArtFor(null));
         }
+
+        [Fact]
+        public void An_id_with_invalid_path_characters_yields_no_path_and_no_art()
+        {
+            char[] invalid = Path.GetInvalidPathChars();
+            Assert.NotEmpty(invalid);          // premise: this platform has some
+
+            string badId = "anc_chip" + invalid[0] + "low";
+            var resolver = new SpriteFileResolver(Path.GetTempPath());
+
+            Assert.Null(resolver.PathFor(badId));
+            Assert.False(resolver.HasArtFor(badId));
+        }
     }
 }

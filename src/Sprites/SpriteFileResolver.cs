@@ -25,21 +25,28 @@ namespace QM_CompanyTechTiers.Sprites
         public string PathFor(string tierId)
         {
             if (string.IsNullOrEmpty(_folder) || string.IsNullOrEmpty(tierId)) return null;
-            return Path.Combine(_folder, FileNameFor(tierId));
+            try
+            {
+                return Path.Combine(_folder, FileNameFor(tierId));
+            }
+            catch
+            {
+                // Invalid path characters in folder or id - treat as "no art".
+                return null;
+            }
         }
 
         public bool HasArtFor(string tierId)
         {
-            string path = PathFor(tierId);
-            if (path == null) return false;
-
             try
             {
+                string path = PathFor(tierId);
+                if (path == null) return false;
                 return File.Exists(path);
             }
             catch
             {
-                // An unreadable path is simply "no art" - never a reason to break startup.
+                // Any unexpected error means "no art" - never a reason to break startup.
                 return false;
             }
         }
