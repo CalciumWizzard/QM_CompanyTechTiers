@@ -16,7 +16,6 @@ namespace QM_CompanyTechTiers.Rewriting
     public static class LocalizationRewriter
     {
         private const int FirstLanguageColumn = 1;
-        private const int LastLanguageColumn = 11;
 
         private static readonly string[] Facets = { "name", "shortdesc", "desc" };
 
@@ -107,7 +106,7 @@ namespace QM_CompanyTechTiers.Rewriting
             bool cr = line.EndsWith("\r", StringComparison.Ordinal);
             var cells = line.TrimEnd('\r').Split('\t');
 
-            for (int i = FirstLanguageColumn; i <= LastLanguageColumn && i < cells.Length; i++)
+            for (int i = FirstLanguageColumn; i < cells.Length; i++)
             {
                 if (cells[i].Length == 0) continue;
                 if (cells[i].EndsWith(suffix, StringComparison.Ordinal)) continue;  // idempotent
@@ -122,7 +121,7 @@ namespace QM_CompanyTechTiers.Rewriting
             bool cr = line.EndsWith("\r", StringComparison.Ordinal);
             var cells = line.TrimEnd('\r').Split('\t');
 
-            for (int i = FirstLanguageColumn; i <= LastLanguageColumn && i < cells.Length; i++)
+            for (int i = FirstLanguageColumn; i < cells.Length; i++)
                 if (cells[i].EndsWith(suffix, StringComparison.Ordinal))
                     cells[i] = cells[i].Substring(0, cells[i].Length - suffix.Length);
 

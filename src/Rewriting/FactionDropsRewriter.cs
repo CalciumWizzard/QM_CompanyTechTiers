@@ -49,6 +49,9 @@ namespace QM_CompanyTechTiers.Rewriting
                 {
                     var chip = plan.ChipByParentId(parentRow.Get(contentCol));
 
+                    // Insert mid first, then low, so low ends up directly beneath the parent:
+                    // InsertRowAfter always anchors on the parent row itself, so inserting low
+                    // first would leave mid between the parent and low instead of below both.
                     foreach (var tier in new[] { Tier.Mid, Tier.Low })
                     {
                         var cells = new List<string>();

@@ -31,7 +31,7 @@ so a game update that changes the config format disables the mod rather than cor
 
 ## Configuration
 
-Written to `%LOCALAPPDATA%\..\LocalLow\Magnum Scriptum Ltd\Quasimorph\Quasimorph_ModConfigs\QM_CompanyTechTiers\config.json`
+Written to `%LOCALAPPDATA%\..\LocalLow\Magnum Scriptum Ltd\Quasimorph_ModConfigs\QM_CompanyTechTiers\config.json`
 on first run.
 
 | Key | Default | Meaning |

@@ -58,6 +58,15 @@ namespace QM_CompanyTechTiers
             {
                 // Malformed config must not stop the mod loading; defaults are written below.
                 readProblem = "Could not read or parse config at '" + path + "', using defaults: " + ex.Message;
+                try
+                {
+                    File.Copy(path, path + ".bak", true);
+                    readProblem += " Your file was preserved as config.json.bak.";
+                }
+                catch
+                {
+                    // Best effort only - a failed backup must not prevent the mod loading.
+                }
             }
 
             var settings = new ModSettings();

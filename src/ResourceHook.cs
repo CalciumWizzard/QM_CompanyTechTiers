@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using MGSC;
 using QM_CompanyTechTiers.Configs;
@@ -26,6 +27,7 @@ namespace QM_CompanyTechTiers
         private static Action<string> _warn = _ => { };
 
         private static ChipTierPlan _plan;
+        private static Dictionary<string, string> _rewrites;
         private static bool _failed;
         private static bool _dumped;
 
@@ -40,6 +42,7 @@ namespace QM_CompanyTechTiers
             _log = log ?? (_ => { });
             _warn = warn ?? (_ => { });
             _plan = null;
+            _rewrites = null;
             _failed = false;
             _dumped = false;
         }
@@ -54,21 +57,21 @@ namespace QM_CompanyTechTiers
                 {
                     case ItemsPath:
                         if (_settings.DumpConfigsOnLoad) DumpOnce();
-                        return Rewrite(ItemsPath, text => ItemsRewriter.Rewrite(
-                            text, RequirePlan(), _settings.TierPrices, _settings.TierTechLevels));
+                        RequirePlan();
+                        return ServeCached(ItemsPath);
 
                     case DropsPath:
-                        return Rewrite(DropsPath, text => FactionDropsRewriter.Rewrite(
-                            text, RequirePlan(), _settings.RewardLevels, _settings.TierPrices,
-                            _settings.WeightDonorIds, _settings.InheritParentDropWeight));
+                        RequirePlan();
+                        return ServeCached(DropsPath);
 
                     case CraftingPath:
                         if (!_settings.RemapUpgradeCosts) return null;
-                        return Rewrite(CraftingPath, text => CraftingRewriter.Rewrite(text, RequirePlan()));
+                        RequirePlan();
+                        return ServeCached(CraftingPath);
 
                     case LocalizationPath:
-                        return Rewrite(LocalizationPath, text => LocalizationRewriter.Rewrite(
-                            text, RequirePlan(), _settings.TierSuffixes));
+                        RequirePlan();
+                        return ServeCached(LocalizationPath);
 
                     case DatadiskDescriptorsPath:
                         return CloneDescriptors();
@@ -91,6 +94,12 @@ namespace QM_CompanyTechTiers
             return Resources.Load<T>(path);
         }
 
+        /// <summary>
+        /// Builds the tiering plan and, the first time it runs, precomputes every config rewrite
+        /// in one pass so the four resources are served transactionally: either all of them are
+        /// ready to hand out, or an exception here trips <see cref="_failed"/> before any one of
+        /// them has been returned to the game.
+        /// </summary>
         private static ChipTierPlan RequirePlan()
         {
             if (_plan != null) return _plan;
@@ -101,18 +110,57 @@ namespace QM_CompanyTechTiers
             _plan = ChipTierPlan.Build(ConfigDocument.Parse(stock.text),
                                        _settings.TierBoundaries[0], _settings.TierBoundaries[1]);
             _log("Discovered " + _plan.Chips.Count + " company chips.");
+
+            PrecomputeRewrites(_plan);
+
             return _plan;
         }
 
-        private static TextAsset Rewrite(string path, Func<string, string> transform)
+        private static void PrecomputeRewrites(ChipTierPlan plan)
+        {
+            var rewrites = new Dictionary<string, string>();
+
+            AddRewrite(rewrites, ItemsPath, text => ItemsRewriter.Rewrite(
+                text, plan, _settings.TierPrices, _settings.TierTechLevels));
+
+            AddRewrite(rewrites, DropsPath, text => FactionDropsRewriter.Rewrite(
+                text, plan, _settings.RewardLevels, _settings.TierPrices,
+                _settings.WeightDonorIds, _settings.InheritParentDropWeight));
+
+            if (_settings.RemapUpgradeCosts)
+                AddRewrite(rewrites, CraftingPath, text => CraftingRewriter.Rewrite(text, plan));
+
+            AddRewrite(rewrites, LocalizationPath, text => LocalizationRewriter.Rewrite(
+                text, plan, _settings.TierSuffixes));
+
+            // Assigned only once every rewrite above has succeeded, so a throw partway through
+            // leaves _rewrites null and nothing gets served from a half-built cache.
+            _rewrites = rewrites;
+        }
+
+        /// <summary>
+        /// Loads the stock text for <paramref name="path"/> via <see cref="Resources.Load"/> (never
+        /// through CustomResources, which would re-enter this hook) and stores the transformed text
+        /// under the same key. A missing stock resource is not fatal: it is warned about and simply
+        /// left out of the cache, same as the old per-path behaviour.
+        /// </summary>
+        private static void AddRewrite(Dictionary<string, string> rewrites, string path, Func<string, string> transform)
         {
             var stock = LoadStock<TextAsset>(path);
-            if (stock == null) { _warn("Stock resource '" + path + "' missing."); return null; }
+            if (stock == null) { _warn("Stock resource '" + path + "' missing."); return; }
 
-            var rewritten = new TextAsset(transform(stock.text));
-            rewritten.name = path.Substring(path.LastIndexOf('/') + 1);
+            rewrites[path] = transform(stock.text);
             _log("Rewrote " + path + ".");
-            return rewritten;
+        }
+
+        private static TextAsset ServeCached(string path)
+        {
+            string text;
+            if (_rewrites == null || !_rewrites.TryGetValue(path, out text)) return null;
+
+            var asset = new TextAsset(text);
+            asset.name = path.Substring(path.LastIndexOf('/') + 1);
+            return asset;
         }
 
         private static void DumpOnce()

@@ -13,7 +13,7 @@ namespace QM_CompanyTechTiers.Tests
 
         private static string Rewritten() => CraftingRewriter.Rewrite(Fixtures.Crafting, Plan());
 
-        [Fact]
+        [FixtureFact]
         public void Replaces_only_the_id_token_and_keeps_counts()
         {
             var plan = ChipTierPlan.Build(ConfigDocument.Parse(Fixtures.Items), 3, 6);

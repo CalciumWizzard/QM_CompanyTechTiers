@@ -64,6 +64,21 @@ namespace QM_CompanyTechTiers.Tests
         }
 
         [Fact]
+        public void Preserves_the_malformed_file_as_a_bak_before_overwriting_with_defaults()
+        {
+            string path = TempPath();
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            const string malformed = "{ this is not json";
+            File.WriteAllText(path, malformed);
+
+            ModSettings.LoadOrCreate(path);
+
+            string bakPath = path + ".bak";
+            Assert.True(File.Exists(bakPath));
+            Assert.Equal(malformed, File.ReadAllText(bakPath));
+        }
+
+        [Fact]
         public void LoadProblem_is_null_after_a_normal_load_of_a_valid_file()
         {
             string path = TempPath();
