@@ -51,10 +51,10 @@ The parser must reproduce input byte-for-byte before any mutation logic is trust
 The dump already exists from the exploration session. Copy it:
 
 ```bash
-SRC="C:/Users/babya/AppData/Local/Temp/claude/C--Users-babya-git/94b2dbc8-a6e0-4652-ae38-25309e2d200a/scratchpad/configdump"
-mkdir -p "C:/Users/babya/git/QM_CompanyTechTiers/tests/fixtures"
+SRC="%USERPROFILE%/AppData/Local/Temp/claude/<scratch>/94b2dbc8-a6e0-4652-ae38-25309e2d200a/scratchpad/configdump"
+mkdir -p "%USERPROFILE%/git/QM_CompanyTechTiers/tests/fixtures"
 cp "$SRC/config_items.txt" "$SRC/config_faction_drops.txt" "$SRC/config_crafting.txt" \
-   "$SRC/localization.txt" "C:/Users/babya/git/QM_CompanyTechTiers/tests/fixtures/"
+   "$SRC/localization.txt" "%USERPROFILE%/git/QM_CompanyTechTiers/tests/fixtures/"
 ```
 
 `localization.txt` is ~12 MB. That is fine — the directory is gitignored.
@@ -262,7 +262,7 @@ namespace QM_CompanyTechTiers.Tests
 
 - [ ] **Step 5: Run the tests to verify they fail**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: compile failure — `The type or namespace name 'Configs' does not exist in the namespace 'QM_CompanyTechTiers'`.
 
 - [ ] **Step 6: Implement `ConfigDocument`**
@@ -430,7 +430,7 @@ namespace QM_CompanyTechTiers.Configs
 
 - [ ] **Step 7: Run the tests to verify they pass**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: PASS, 5 tests, 0 skipped (fixtures were copied in Step 1).
 
 If `Round_trips_every_real_config_byte_for_byte` fails, the bug is in line-ending or trailing-cell handling — compare `text.Length` with `Render().Length` and bisect on the first differing index. Do not "fix" it by normalising line endings; the game's parser sees the raw bytes.
@@ -438,7 +438,7 @@ If `Round_trips_every_real_config_byte_for_byte` fails, the bug is in line-endin
 - [ ] **Step 8: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Configs/ConfigDocument.cs src/QM_CompanyTechTiers.csproj tests/ .gitignore
 git commit -m "feat: config table parser with byte-exact round-trip"
 ```
@@ -521,7 +521,7 @@ Append to `ConfigDocumentTests.cs` inside the class:
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: compile failure — `'ConfigRow' does not contain a definition for 'Set'`.
 
 - [ ] **Step 3: Implement `Set`**
@@ -601,13 +601,13 @@ That does not work, because the document is built last. Instead, assign owners j
 
 - [ ] **Step 5: Run the tests to verify they pass**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: PASS, 10 tests.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Configs/ConfigDocument.cs tests/
 git commit -m "feat: cell mutation and row insertion for config tables"
 ```
@@ -744,7 +744,7 @@ namespace QM_CompanyTechTiers.Tests
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: compile failure — `The type or namespace name 'Tiering' does not exist`.
 
 - [ ] **Step 3: Implement `ChipTierPlan`**
@@ -913,7 +913,7 @@ namespace QM_CompanyTechTiers.Tiering
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: PASS, 17 tests.
 
 If `Discovers_only_company_chips` reports 13 or 11, do not adjust the expected count — inspect which row differs and fix the predicate. The count 12 is asserted alongside a row-by-row check that re-derives the answer from the fixture, so a genuine game change will fail both together and that is the signal to update the spec.
@@ -921,7 +921,7 @@ If `Discovers_only_company_chips` reports 13 or 11, do not adjust the expected c
 - [ ] **Step 5: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Tiering/ChipTierPlan.cs tests/
 git commit -m "feat: company chip discovery and tech-level partition"
 ```
@@ -1055,7 +1055,7 @@ namespace QM_CompanyTechTiers.Tests
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: compile failure — `The type or namespace name 'Rewriting' does not exist`.
 
 - [ ] **Step 3: Implement `ItemsRewriter`**
@@ -1128,13 +1128,13 @@ namespace QM_CompanyTechTiers.Rewriting
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: PASS, 22 tests.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Rewriting/ItemsRewriter.cs tests/
 git commit -m "feat: emit tiered company chip rows in config_items"
 ```
@@ -1279,7 +1279,7 @@ namespace QM_CompanyTechTiers.Tests
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: compile failure — `FactionDropsRewriter` not found.
 
 - [ ] **Step 3: Implement `FactionDropsRewriter`**
@@ -1376,13 +1376,13 @@ namespace QM_CompanyTechTiers.Rewriting
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: PASS, 28 tests.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Rewriting/FactionDropsRewriter.cs tests/
 git commit -m "feat: offer tiered company chips at faction levels 3 and 6"
 ```
@@ -1513,7 +1513,7 @@ namespace QM_CompanyTechTiers.Tests
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: compile failure — `CraftingRewriter` not found.
 
 - [ ] **Step 3: Implement `CraftingRewriter`**
@@ -1583,13 +1583,13 @@ namespace QM_CompanyTechTiers.Rewriting
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: PASS, 33 tests.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Rewriting/CraftingRewriter.cs tests/
 git commit -m "feat: remap upgrade costs to the matching chip tier"
 ```
@@ -1750,7 +1750,7 @@ namespace QM_CompanyTechTiers.Tests
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: compile failure — `LocalizationRewriter` not found.
 
 - [ ] **Step 3: Implement `LocalizationRewriter`**
@@ -1894,7 +1894,7 @@ namespace QM_CompanyTechTiers.Rewriting
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: PASS, 40 tests.
 
 Watch `Is_idempotent` in particular: the parent name row is suffixed on every pass, so `SuffixLanguages`
@@ -1903,7 +1903,7 @@ must skip cells that already end with the suffix. If it fails you will see `Anco
 - [ ] **Step 5: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Rewriting/LocalizationRewriter.cs tests/
 git commit -m "feat: name chip tiers in all 11 languages via the localization table"
 ```
@@ -2030,13 +2030,13 @@ In `tests/QM_CompanyTechTiers.Tests/QM_CompanyTechTiers.Tests.csproj`:
 
 - [ ] **Step 3: Run the tests to verify they fail**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: compile failure — `ModSettings` not found.
 
 - [ ] **Step 4: Delete the template placeholder and implement `ModSettings`**
 
 ```bash
-rm "C:/Users/babya/git/QM_CompanyTechTiers/src/ModConfig.cs"
+rm "%USERPROFILE%/git/QM_CompanyTechTiers/src/ModConfig.cs"
 ```
 
 `src/ModSettings.cs`:
@@ -2136,13 +2136,13 @@ namespace QM_CompanyTechTiers
 
 - [ ] **Step 5: Run the tests to verify they pass**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: PASS, 44 tests.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add -A src/ tests/
 git commit -m "feat: mod settings with validation and safe defaults"
 ```
@@ -2344,7 +2344,7 @@ namespace QM_CompanyTechTiers
 
 - [ ] **Step 2: Build to verify it compiles**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off`
 Expected: `Build succeeded`, 0 errors.
 
 `DescriptorsCollection.TryGetDescriptor` is `bool TryGetDescriptor(string id, out UnityEngine.Object descriptor)`
@@ -2354,7 +2354,7 @@ If either fails to resolve, confirm against the decompiled `DescriptorsCollectio
 - [ ] **Step 3: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/ResourceHook.cs
 git commit -m "feat: ResourcesLoad hook wiring all rewriters and tier descriptors"
 ```
@@ -2427,7 +2427,7 @@ namespace QM_CompanyTechTiers
 - [ ] **Step 2: Delete the template's example patch**
 
 ```bash
-rm "C:/Users/babya/git/QM_CompanyTechTiers/src/ExamplePatch.cs"
+rm "%USERPROFILE%/git/QM_CompanyTechTiers/src/ExamplePatch.cs"
 ```
 
 - [ ] **Step 3: Fill in the manifest**
@@ -2464,7 +2464,7 @@ for ($i = 0; $i -lt 3; $i++) {
   $g.FillRectangle($b, 40, (40 + $i*64), (60 + $i*70), 48)
 }
 $g.Dispose()
-$bmp.Save('C:\Users\babya\git\QM_CompanyTechTiers\media\thumbnail.png',
+$bmp.Save('%USERPROFILE%\git\QM_CompanyTechTiers\media\thumbnail.png',
           [System.Drawing.Imaging.ImageFormat]::Png)
 $bmp.Dispose()
 ```
@@ -2501,8 +2501,8 @@ In `src/QM_CompanyTechTiers.csproj`, immediately after the `NoSteamIdMessage` ta
 
 Run:
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo
-cd "C:/Users/babya/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off
+cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo
+cd "%USERPROFILE%/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off
 ```
 Expected: 44 tests pass; build succeeds and prints `Deployed locally to ...LocalUserPresets\QM_CompanyTechTiers\`.
 
@@ -2546,7 +2546,7 @@ interceptable through the same `ResourcesLoad` hook.
 - [ ] **Step 10: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add -A
 git commit -m "feat: wire up plugin, manifest, local deploy and docs"
 ```

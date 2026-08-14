@@ -145,7 +145,7 @@ Then extend the existing defaults test in `tests/QM_CompanyTechTiers.Tests/ModSe
 
 - [ ] **Step 3: Run the tests to verify they fail**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: compile failure — `The type or namespace name 'Sprites' does not exist in the namespace 'QM_CompanyTechTiers'`.
 
 - [ ] **Step 4: Implement `SpriteFileResolver`**
@@ -215,13 +215,13 @@ Do **not** add it to `Validate()` — a bool has no invalid value, and every exi
 
 - [ ] **Step 6: Run the tests to verify they pass**
 
-Run: `cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
+Run: `cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo`
 Expected: PASS, at least 58 tests, 0 skipped, no warnings.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Sprites/SpriteFileResolver.cs src/ModSettings.cs tests/
 git commit -m "feat: sprite file resolver and chip sprite dump setting"
 ```
@@ -374,8 +374,8 @@ And add this method to the class:
 
 Run:
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off
-cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo
+cd "%USERPROFILE%/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off
+cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo
 ```
 Expected: build succeeds with 0 warnings; the suite is unchanged and still green (this task adds no tests — say so plainly in your report rather than implying coverage).
 
@@ -386,7 +386,7 @@ Set `"DumpChipSpritesOnLoad": true` in
 
 Launch: `Start-Process "steam://rungameid/2059170"` (PowerShell).
 
-The log is at `C:\Users\babya\AppData\LocalLow\Magnum Scriptum Ltd\Quasimorph\Player.log` and is truncated on each launch. **Beware a stale-log race:** the previous run's content is on disk when you start polling, so confirm freshness (the `Game version:` banner reappearing, or the file's write time advancing) before trusting a match. Also confirm only one `Quasimorph` process is running — a leftover instance interleaves its writes and has produced misleading results in this project before. Wait for `GameModeStateMachine transition -> MainMenu`.
+The log is at `%USERPROFILE%\AppData\LocalLow\Magnum Scriptum Ltd\Quasimorph\Player.log` and is truncated on each launch. **Beware a stale-log race:** the previous run's content is on disk when you start polling, so confirm freshness (the `Game version:` banner reappearing, or the file's write time advancing) before trusting a match. Also confirm only one `Quasimorph` process is running — a leftover instance interleaves its writes and has produced misleading results in this project before. Wait for `GameModeStateMachine transition -> MainMenu`.
 
 Close it:
 ```powershell
@@ -402,7 +402,7 @@ Then set `DumpChipSpritesOnLoad` back to `false`.
 
 Count the files:
 ```bash
-ls "/c/Users/babya/AppData/LocalLow/Magnum Scriptum Ltd/Quasimorph_ModConfigs/QM_CompanyTechTiers/sprite_dump/" | wc -l
+ls "%USERPROFILE%/AppData/LocalLow/Magnum Scriptum Ltd/Quasimorph_ModConfigs/QM_CompanyTechTiers/sprite_dump/" | wc -l
 ```
 Expected: **24**, named `<prefix>_chip_low.png` and `<prefix>_chip_mid.png` for the twelve prefixes `anc rwa sbn ddr sun cor plb gra chu fra dil tia`.
 
@@ -419,7 +419,7 @@ Also sanity-check the dimensions: chips are `InventoryWidthSize` 1, so expect ro
 - [ ] **Step 7: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Sprites/SpriteDumper.cs src/ResourceHook.cs src/QM_CompanyTechTiers.csproj
 git commit -m "feat: dump company chip icons as per-tier PNGs"
 ```
@@ -695,8 +695,8 @@ In `PostBuildPackage`, after its existing `Copy`:
 
 Run:
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off
-cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo
+cd "%USERPROFILE%/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off
+cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo
 ```
 Expected: build succeeds with 0 warnings; suite still green.
 
@@ -735,7 +735,7 @@ Report what you saw for each. If something looks wrong, say so plainly and name 
 - [ ] **Step 7: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add src/Sprites/SpriteLoader.cs src/ResourceHook.cs src/Plugin.cs src/QM_CompanyTechTiers.csproj media/sprites/.gitkeep
 git commit -m "feat: load hand-edited chip tier art and ship it with the mod"
 ```
@@ -782,16 +782,16 @@ Leave the rest of the spec alone; it describes what was built.
 
 Run:
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo
-cd "C:/Users/babya/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off
-cd "C:/Users/babya/git/QM_CompanyTechTiers" && git status --short
+cd "%USERPROFILE%/git/QM_CompanyTechTiers/tests/QM_CompanyTechTiers.Tests" && dotnet test --nologo
+cd "%USERPROFILE%/git/QM_CompanyTechTiers/src" && dotnet build -c Release -v m -tl:off
+cd "%USERPROFILE%/git/QM_CompanyTechTiers" && git status --short
 ```
 Expected: all tests green and none skipped; build succeeds with 0 warnings; `git status` lists nothing under `tests/fixtures/` or `.superpowers/`.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-cd "C:/Users/babya/git/QM_CompanyTechTiers"
+cd "%USERPROFILE%/git/QM_CompanyTechTiers"
 git add README.md docs/
 git commit -m "docs: chip tier sprite authoring loop"
 ```
