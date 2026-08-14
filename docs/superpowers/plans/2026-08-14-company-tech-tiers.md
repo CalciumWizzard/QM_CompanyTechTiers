@@ -12,7 +12,7 @@
 
 - Target framework is `net48`. The SDK defaults `LangVersion` to 7.3 on net48; the csproj files set `<LangVersion>latest</LangVersion>`. Do not use `record` or `init` accessors — they need an `IsExternalInit` polyfill on net48. Classic brace namespaces, matching template style.
 - Game build targeted: **Quasimorph 1.0.1.566s.7e4da55**. Game path `C:\Program Files (x86)\Steam\steamapps\common\Quasimorph`.
-- Mod unique name is `babyak_QM_CompanyTechTiers`. Never change it — it is the key `modprefs.json` uses.
+- Mod unique name is `QM_CompanyTechTiers`. Never change it — it is the key `modprefs.json` uses.
 - **Nothing may be hardcoded** that can be derived from config text: no item ids, faction names, chip ids, tech levels or table names. Tests must assert against values derived from the fixture, not literals copied into the source.
 - Ship only `QM_CompanyTechTiers.dll`, `modmanifest.json`, `thumbnail.png`. Never bundle `Assembly-CSharp.dll`, `UnityEngine*.dll` or `0Harmony.dll` — the game supplies them.
 - Config table format: CRLF line endings, tab-separated, rows padded with trailing empty cells to a fixed column count, **no trailing newline**. Round-trip fidelity is mandatory.
@@ -2436,7 +2436,7 @@ rm "C:/Users/babya/git/QM_CompanyTechTiers/src/ExamplePatch.cs"
 
 ```json
 {
-  "UniqueModName": "babyak_QM_CompanyTechTiers",
+  "UniqueModName": "QM_CompanyTechTiers",
   "Assemblies": [
     "QM_CompanyTechTiers.dll"
   ],
@@ -2513,7 +2513,7 @@ with `(Get-Process Quasimorph).CloseMainWindow()`.
 
 Check `%USERPROFILE%\AppData\LocalLow\Magnum Scriptum Ltd\Quasimorph\Player.log` for:
 
-1. `Mod babyak_QM_CompanyTechTiers loaded.` inside the `Mods list:` block.
+1. `Mod QM_CompanyTechTiers loaded.` inside the `Mods list:` block.
 2. `[QM_CompanyTechTiers] Discovered 12 company chips.`
 3. `[QM_CompanyTechTiers] Rewrote config_items.`, `... config_faction_drops.`, `... config_crafting.`, `... localization.`
 4. `[QM_CompanyTechTiers] Registered 24 tier descriptors.`

@@ -114,4 +114,4 @@ routes through the same loader as Workshop mods. Pass `-p:LocalDeploy=false` to 
 
 ## Source
 
-Source code is available on GitHub at https://github.com/babyak/QM_CompanyTechTiers
+Source code is available on GitHub at https://github.com/CalciumWizzard/QM_CompanyTechTiers

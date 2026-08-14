@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-14
 **Target:** Quasimorph 1.0.1.566s.7e4da55 (Unity 2022.3.62f2, Steam app 2059170, stable branch)
-**Mod id:** `babyak_QM_CompanyTechTiers`
+**Mod id:** `QM_CompanyTechTiers`
 
 ## Problem
 
