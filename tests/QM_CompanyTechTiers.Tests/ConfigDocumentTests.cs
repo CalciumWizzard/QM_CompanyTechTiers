@@ -14,7 +14,7 @@ namespace QM_CompanyTechTiers.Tests
 
             Assert.Equal(new[] { "alpha", "beta" }, doc.Sections.Select(s => s.Name).ToArray());
             Assert.Equal(new[] { "Id", "Value", "" }, doc.Section("alpha").Columns.ToArray());
-            Assert.Equal(1, doc.Section("alpha").Rows.Count);
+            Assert.Single(doc.Section("alpha").Rows);
             Assert.Equal("a", doc.Section("alpha").Rows[0].Get(0));
             Assert.Equal("1", doc.Section("alpha").Rows[0].Get(1));
             Assert.Equal(1, doc.Section("alpha").ColumnIndex("Value"));
@@ -34,8 +34,8 @@ namespace QM_CompanyTechTiers.Tests
         public void Blank_lines_between_sections_survive_and_are_not_rows()
         {
             var doc = ConfigDocument.Parse("#a\r\nId\r\nx\r\n#end\r\n\r\n#b\r\nId\r\ny\r\n#end");
-            Assert.Equal(1, doc.Section("a").Rows.Count);
-            Assert.Equal(1, doc.Section("b").Rows.Count);
+            Assert.Single(doc.Section("a").Rows);
+            Assert.Single(doc.Section("b").Rows);
         }
 
         [FixtureFact]

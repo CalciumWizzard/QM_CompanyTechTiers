@@ -12,6 +12,8 @@ namespace QM_CompanyTechTiers.Configs
     {
         internal string[] Cells;
         internal readonly bool HadCarriageReturn;
+
+        /// <summary>Set by <c>Set(int, string)</c>, added in Task 2, when a cell is edited.</summary>
         internal bool Dirty;
 
         internal ConfigRow(string[] cells, bool hadCarriageReturn)
