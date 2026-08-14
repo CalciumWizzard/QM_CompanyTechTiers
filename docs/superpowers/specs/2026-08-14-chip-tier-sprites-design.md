@@ -96,9 +96,14 @@ is atlas-packed.
 
 The sub-rect is `sprite.textureRect` when `sprite.packed` is true, otherwise `sprite.rect`.
 
-**Orientation is a verification step, not an assumption.** `Graphics.Blit` can flip vertically
-depending on graphics API. The implementer must open a dumped PNG and confirm it is upright,
-flipping the `ReadPixels` source rect if not. This is checked by eye against the in-game icon, once.
+**Orientation — verified, no flip needed.** `Graphics.Blit` can flip vertically depending on graphics
+API, so this was checked rather than assumed: Task 2 Step 6 opened dumped PNGs (including 10x
+nearest-neighbour upscales, and a deliberately-flipped comparison copy) and found the unflipped
+`ReadPixels` output upright — coherent chip-body objects with notch marks at the top and pins/glow at
+the bottom, consistent across three independently-coloured samples, and visibly upside-down when
+flipped for comparison. The sub-rect passed to `ReadPixels` is exactly as given above; no flip was
+applied. This held under Direct3D on the tested Windows build; a future graphics-API change is a
+reason to re-check, not to assume this holds forever.
 
 ## Part 2 — Loading
 
@@ -140,10 +145,15 @@ here may propagate an exception, because that would break game startup rather th
 `ResourceHook.Initialise` gains a `string spritesFolder` parameter. `Plugin.BeforeBootstrap` passes
 `Path.Combine(context.ModContentPath, "sprites")`.
 
-**`ModContentPath` availability must be verified, not assumed.** It is declared on `IModContext`, but
-this project has only ever read it from `AfterConfigsLoaded`. If it turns out to be unpopulated
-during `BeforeBootstrap`, the fallback is to resolve the folder relative to the executing assembly's
-location instead. This is an explicit implementation check.
+**`ModContentPath` availability — verified populated during `BeforeBootstrap`.** It is declared on
+`IModContext`, and this project had previously only ever read it from `AfterConfigsLoaded`, so this was
+checked rather than assumed. Task 3 Step 6 confirmed it directly: both in-game runs' "Armed." log line
+showed a resolved sprites folder, and neither run logged
+`ModContentPath was empty during BeforeBootstrap; using the assembly folder.` — the warning
+`ResolveModContentPath`'s fallback emits when it fires. The assembly-folder fallback code remains in
+place (harmless, and it is what protects against a future game update changing this behaviour) but did
+not fire and was not exercised. This was confirmed under local-deploy (`LoadCustomPresets`) loading
+only; Steam Workshop loading was not tested, since this project has no `SteamId` configured.
 
 Two MSBuild targets in `src/QM_CompanyTechTiers.csproj` need updating, and the second is easy to
 miss:

@@ -45,12 +45,49 @@ on first run.
 | `RemapUpgradeCosts` | `true` | Whether `config_crafting` upgrade costs are rewritten to the matching tier |
 | `InheritParentDropWeight` | `false` | If `true`, new tiers use the parent company chip's own drop weight instead of the generic chip's (see below) |
 | `DumpConfigsOnLoad` | `false` | Writes the game's raw config text next to this file, for regenerating test fixtures |
+| `DumpChipSpritesOnLoad` | `false` | Writes each company chip's icon to `sprite_dump/` next to this file, as editable per-tier PNGs |
 
 **Drop weights.** By default, tier 1 and tier 2 reward-table entries take the drop weight of the
 generic chip in the same bracket (`low_chip` / `medium_chip`), not the parent company chip's own
 weight. Company chip entries carry weight 115 while a level-3 reward pool totals roughly 40, so
 inheriting the parent's weight directly would make company tech about 74% of all chip rewards at
 level 3. Set `InheritParentDropWeight` to `true` to restore that behaviour instead.
+
+## Custom tier icons
+
+By default the two new tiers of each company chip (`<company>_chip_low`, `<company>_chip_mid`) share
+the parent chip's existing inventory icon, so all three tiers of a company look identical. You can
+give the low and mid tiers their own hand-drawn icons; the level-10 chip (`<company>_chip`, the
+vanilla item) is never re-skinned and always keeps its base-game appearance.
+
+To draw and install custom icons:
+
+1. Set `DumpChipSpritesOnLoad` to `true` in `config.json` (see the table above) and launch the game
+   once. On that launch the mod writes every company chip's icon out twice — once per new tier id —
+   as ready-to-edit PNGs to:
+
+   ```
+   %LOCALAPPDATA%\..\LocalLow\Magnum Scriptum Ltd\Quasimorph_ModConfigs\QM_CompanyTechTiers\sprite_dump\
+   ```
+
+   That is 24 files, e.g. `anc_chip_low.png` and `anc_chip_mid.png` for the `anc` company. Each is
+   **19×24 pixels**, RGBA — draw at that exact size; there is no resizing step. Set
+   `DumpChipSpritesOnLoad` back to `false` afterward (the dump only needs to run once, and repeating it
+   just overwrites the same files with the same unedited icons).
+
+2. Edit the PNGs in `sprite_dump\` with any image editor that preserves the 19×24 size and alpha
+   channel.
+
+3. Copy only the files you changed into `media/sprites/` in this repo (create the folder if it isn't
+   there yet). The filename is what maps a PNG to a tier id — `anc_chip_low.png` in `media/sprites/`
+   replaces the `anc_chip_low` icon and nothing else.
+
+4. Rebuild (`dotnet build -c Release` from `src/`, as in Install below) and relaunch. The build copies
+   `media/sprites/*.png` into the deployed mod folder for you.
+
+Only the tier ids whose PNG you copied into `media/sprites/` get a custom icon; every other tier id
+keeps rendering with the shared parent chip icon, exactly as before. Check `Player.log` for
+`Registered 24 tier descriptors (N with custom art).` — `N` should match the number of PNGs you added.
 
 ## Install
 
