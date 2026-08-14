@@ -11,6 +11,7 @@
     <Compile Include="../../src/Configs/**/*.cs" LinkBase="Linked/Configs" />
     <Compile Include="../../src/Tiering/**/*.cs" LinkBase="Linked/Tiering" />
     <Compile Include="../../src/Rewriting/**/*.cs" LinkBase="Linked/Rewriting" />
+    <Compile Include="../../src/Sprites/SpriteFileResolver.cs" Link="Linked/SpriteFileResolver.cs" />
     <Compile Include="../../src/ModSettings.cs" Link="Linked/ModSettings.cs" />
   </ItemGroup>
 

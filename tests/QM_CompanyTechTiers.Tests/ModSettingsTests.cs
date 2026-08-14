@@ -25,6 +25,7 @@ namespace QM_CompanyTechTiers.Tests
             Assert.True(settings.RemapUpgradeCosts);
             Assert.False(settings.InheritParentDropWeight);
             Assert.False(settings.DumpConfigsOnLoad);
+            Assert.False(settings.DumpChipSpritesOnLoad);
         }
 
         [Fact]

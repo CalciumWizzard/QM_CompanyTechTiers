@@ -36,6 +36,9 @@ namespace QM_CompanyTechTiers
         /// <summary>Write the game's raw config text next to this file, for regenerating test fixtures.</summary>
         public bool DumpConfigsOnLoad = false;
 
+        /// <summary>Write each company chip's icon to sprite_dump/ as editable per-tier PNGs.</summary>
+        public bool DumpChipSpritesOnLoad = false;
+
         /// <summary>
         /// Non-null when LoadOrCreate could not use the config file and substituted defaults.
         /// Describes what went wrong, for the caller to log. Never serialized.
