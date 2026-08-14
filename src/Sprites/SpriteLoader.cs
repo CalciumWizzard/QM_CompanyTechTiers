@@ -32,7 +32,11 @@ namespace QM_CompanyTechTiers.Sprites
 
         public static DatadiskDescriptor TryBuildDescriptor(string pngPath, ItemContentDescriptor parent, Action<string> warn)
         {
-            if (parent == null) return null;
+            if (parent == null)
+            {
+                warn("No parent descriptor to build custom art from; keeping the shared descriptor.");
+                return null;
+            }
 
             if (!FieldsResolved)
             {
@@ -76,18 +80,27 @@ namespace QM_CompanyTechTiers.Sprites
             var pivot = new Vector2(parentSprite.pivot.x / parentSprite.rect.width,
                                     parentSprite.pivot.y / parentSprite.rect.height);
 
-            // pixelsPerUnit copied from the parent: getting it wrong renders a correct image at the
-            // wrong size, which is a silent and confusing failure.
-            Sprite sprite = Sprite.Create(texture,
-                                          new Rect(0f, 0f, texture.width, texture.height),
-                                          pivot,
-                                          parentSprite.pixelsPerUnit);
+            try
+            {
+                // pixelsPerUnit copied from the parent: getting it wrong renders a correct image at the
+                // wrong size, which is a silent and confusing failure.
+                Sprite sprite = Sprite.Create(texture,
+                                              new Rect(0f, 0f, texture.width, texture.height),
+                                              pivot,
+                                              parentSprite.pixelsPerUnit);
 
-            var descriptor = ScriptableObject.CreateInstance<DatadiskDescriptor>();
-            IconField.SetValue(descriptor, sprite);
-            SmallIconField.SetValue(descriptor, parent.SmallIcon);
-            ShadowField.SetValue(descriptor, parent.ShadowOnFloor);
-            return descriptor;
+                var descriptor = ScriptableObject.CreateInstance<DatadiskDescriptor>();
+                IconField.SetValue(descriptor, sprite);
+                SmallIconField.SetValue(descriptor, parent.SmallIcon);
+                ShadowField.SetValue(descriptor, parent.ShadowOnFloor);
+                return descriptor;
+            }
+            catch (Exception ex)
+            {
+                warn("Could not build a custom descriptor from '" + pngPath + "': " + ex.Message);
+                UnityEngine.Object.Destroy(texture);
+                return null;
+            }
         }
     }
 }
