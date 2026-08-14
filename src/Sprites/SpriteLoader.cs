@@ -63,25 +63,33 @@ namespace QM_CompanyTechTiers.Sprites
                 return null;
             }
 
-            var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-            if (!texture.LoadImage(bytes))
-            {
-                warn("'" + pngPath + "' is not a decodable image; keeping the shared descriptor.");
-                UnityEngine.Object.Destroy(texture);
-                return null;
-            }
-
-            // Copied from the parent, not defaulted. This is a pixel-art game: a texture left on
-            // Bilinear renders visibly blurry next to every other icon.
-            texture.filterMode = parentSprite.texture != null ? parentSprite.texture.filterMode : FilterMode.Point;
-            texture.Apply();
-
-            // Sprite.pivot is in pixels; Sprite.Create wants a 0-1 fraction of the rect.
-            var pivot = new Vector2(parentSprite.pivot.x / parentSprite.rect.width,
-                                    parentSprite.pivot.y / parentSprite.rect.height);
-
+            Texture2D texture = null;
             try
             {
+                texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                if (!texture.LoadImage(bytes))
+                {
+                    warn("'" + pngPath + "' is not a decodable image; keeping the shared descriptor.");
+                    UnityEngine.Object.Destroy(texture);
+                    return null;
+                }
+
+                // Copied from the parent, not defaulted. This is a pixel-art game: a texture left on
+                // Bilinear renders visibly blurry next to every other icon.
+                texture.filterMode = parentSprite.texture != null ? parentSprite.texture.filterMode : FilterMode.Point;
+                texture.Apply();
+
+                if (texture.width != (int)parentSprite.rect.width || texture.height != (int)parentSprite.rect.height)
+                {
+                    warn("'" + pngPath + "' is " + texture.width + "x" + texture.height +
+                         " but the parent icon is " + (int)parentSprite.rect.width + "x" +
+                         (int)parentSprite.rect.height + "; it will render at a different size.");
+                }
+
+                // Sprite.pivot is in pixels; Sprite.Create wants a 0-1 fraction of the rect.
+                var pivot = new Vector2(parentSprite.pivot.x / parentSprite.rect.width,
+                                        parentSprite.pivot.y / parentSprite.rect.height);
+
                 // pixelsPerUnit copied from the parent: getting it wrong renders a correct image at the
                 // wrong size, which is a silent and confusing failure.
                 Sprite sprite = Sprite.Create(texture,
@@ -98,7 +106,10 @@ namespace QM_CompanyTechTiers.Sprites
             catch (Exception ex)
             {
                 warn("Could not build a custom descriptor from '" + pngPath + "': " + ex.Message);
-                UnityEngine.Object.Destroy(texture);
+                if (texture != null)
+                {
+                    UnityEngine.Object.Destroy(texture);
+                }
                 return null;
             }
         }

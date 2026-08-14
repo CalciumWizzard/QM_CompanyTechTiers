@@ -61,11 +61,13 @@
 			<FilesToDelete Include="$(WorkshopPath)*" />
 		</ItemGroup>
 		<Delete Files="@(FilesToDelete)" />
+		<RemoveDir Directories="$(WorkshopPath)sprites" />
 	</Target>
 
 	<Target Name="ModBaseItems" AfterTargets="PostBuildEvent">
 		<Copy SourceFiles="../modmanifest.json" DestinationFolder="$(TargetDir)" />
 		<Copy SourceFiles="../media/thumbnail.png" DestinationFolder="$(TargetDir)" ContinueOnError="true" />
+		<RemoveDir Directories="$(TargetDir)sprites" />
 		<ItemGroup>
 			<SpriteArt Include="../media/sprites/*.png" />
 		</ItemGroup>

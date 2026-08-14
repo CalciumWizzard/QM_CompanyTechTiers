@@ -72,15 +72,15 @@ To draw and install custom icons:
 
    That is 24 files, e.g. `anc_chip_low.png` and `anc_chip_mid.png` for the `anc` company. Each is
    **19×24 pixels**, RGBA — draw at that exact size; there is no resizing step. Set
-   `DumpChipSpritesOnLoad` back to `false` afterward (the dump only needs to run once, and repeating it
-   just overwrites the same files with the same unedited icons).
+   `DumpChipSpritesOnLoad` back to `false` afterward: the dump only needs to run once, and re-running it
+   overwrites everything in `sprite_dump\`, including edits you made there — there is no backup.
 
 2. Edit the PNGs in `sprite_dump\` with any image editor that preserves the 19×24 size and alpha
    channel.
 
-3. Copy only the files you changed into `media/sprites/` in this repo (create the folder if it isn't
-   there yet). The filename is what maps a PNG to a tier id — `anc_chip_low.png` in `media/sprites/`
-   replaces the `anc_chip_low` icon and nothing else.
+3. Copy only the files you changed into `media/sprites/` in this repo. The filename is what maps a PNG
+   to a tier id — `anc_chip_low.png` in `media/sprites/` replaces the `anc_chip_low` icon and nothing
+   else.
 
 4. Rebuild (`dotnet build -c Release` from `src/`, as in Install below) and relaunch. The build copies
    `media/sprites/*.png` into the deployed mod folder for you.
