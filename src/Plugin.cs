@@ -16,7 +16,7 @@ namespace QM_CompanyTechTiers
 
         public static ConfigDirectories ConfigDirectories = new ConfigDirectories();
 
-        public static ModConfig Config { get; private set; }
+        public static ModSettings Settings { get; private set; }
 
         public static Logger Logger = new Logger();
 
@@ -26,7 +26,7 @@ namespace QM_CompanyTechTiers
 
             Directory.CreateDirectory(ConfigDirectories.ModPersistenceFolder);
 
-            Config = ModConfig.LoadConfig(ConfigDirectories.ConfigPath);
+            Settings = ModSettings.LoadOrCreate(ConfigDirectories.ConfigPath);
 
             new Harmony("babyak_" + ConfigDirectories.ModAssemblyName).PatchAll();
         }
