@@ -25,13 +25,30 @@ namespace QM_CompanyTechTiers
             if (!string.IsNullOrEmpty(Settings.LoadProblem))
                 Logger.LogWarning(Settings.LoadProblem);
 
+            string spritesFolder = Path.Combine(ResolveModContentPath(context), "sprites");
+
             ResourceHook.Initialise(
                 Settings,
                 Path.Combine(ConfigDirectories.ModPersistenceFolder, "configdump"),
+                spritesFolder,
                 Logger.Log,
                 Logger.LogWarning);
 
-            Logger.Log("Armed. Config at " + ConfigDirectories.ConfigPath);
+            Logger.Log("Armed. Config at " + ConfigDirectories.ConfigPath + "; sprites from " + spritesFolder);
+        }
+
+        /// <summary>
+        /// IModContext.ModContentPath is the mod's folder, but this mod has only ever read it from
+        /// AfterConfigsLoaded. If it is not yet populated during BeforeBootstrap, fall back to the
+        /// directory this assembly was loaded from, which is the same folder.
+        /// </summary>
+        private static string ResolveModContentPath(IModContext context)
+        {
+            string path = context != null ? context.ModContentPath : null;
+            if (!string.IsNullOrEmpty(path)) return path;
+
+            Logger.LogWarning("ModContentPath was empty during BeforeBootstrap; using the assembly folder.");
+            return Path.GetDirectoryName(typeof(Plugin).Assembly.Location) ?? string.Empty;
         }
 
         [Hook(ModHookType.ResourcesLoad)]

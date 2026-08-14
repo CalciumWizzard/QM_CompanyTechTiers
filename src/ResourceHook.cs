@@ -24,6 +24,7 @@ namespace QM_CompanyTechTiers
 
         private static ModSettings _settings;
         private static string _dumpFolder;
+        private static SpriteFileResolver _sprites;
         private static Action<string> _log = _ => { };
         private static Action<string> _warn = _ => { };
 
@@ -36,11 +37,12 @@ namespace QM_CompanyTechTiers
         /// <summary>The plan built during config rewriting. Null if rewriting never ran or failed.</summary>
         public static ChipTierPlan Plan { get { return _plan; } }
 
-        public static void Initialise(ModSettings settings, string dumpFolder,
+        public static void Initialise(ModSettings settings, string dumpFolder, string spritesFolder,
                                       Action<string> log, Action<string> warn)
         {
             _settings = settings;
             _dumpFolder = dumpFolder;
+            _sprites = new SpriteFileResolver(spritesFolder);
             _log = log ?? (_ => { });
             _warn = warn ?? (_ => { });
             _plan = null;
@@ -196,26 +198,37 @@ namespace QM_CompanyTechTiers
 
             var plan = RequirePlan();
             int added = 0;
+            int customised = 0;
 
             foreach (var chip in plan.Chips)
             {
                 UnityEngine.Object parent;
                 if (!collection.TryGetDescriptor(chip.ParentId, out parent) || parent == null) continue;
 
+                var parentDescriptor = parent as ItemContentDescriptor;
+
                 foreach (var tier in new[] { Tier.Low, Tier.Mid })
                 {
+                    string id = chip.IdFor(tier);
+
                     UnityEngine.Object existing;
-                    if (collection.TryGetDescriptor(chip.IdFor(tier), out existing)) continue;
+                    if (collection.TryGetDescriptor(id, out existing)) continue;
 
-                    if (_settings.DumpChipSpritesOnLoad)
-                        DumpSprite(chip.IdFor(tier), parent as ItemContentDescriptor);
+                    if (_settings.DumpChipSpritesOnLoad) DumpSprite(id, parentDescriptor);
 
-                    collection.AddDescriptor(chip.IdFor(tier), parent);
+                    UnityEngine.Object descriptor = parent;
+                    if (_sprites != null && _sprites.HasArtFor(id))
+                    {
+                        var custom = SpriteLoader.TryBuildDescriptor(_sprites.PathFor(id), parentDescriptor, _warn);
+                        if (custom != null) { descriptor = custom; customised++; }
+                    }
+
+                    collection.AddDescriptor(id, descriptor);
                     added++;
                 }
             }
 
-            _log("Registered " + added + " tier descriptors.");
+            _log("Registered " + added + " tier descriptors (" + customised + " with custom art).");
             return collection;
         }
 
