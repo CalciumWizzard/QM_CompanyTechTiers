@@ -367,4 +367,5 @@ FodyWeavers.xsd
 /SteamMod
 
 # Game config fixtures - regenerate locally, never commit game assets
-tests/fixtures/
+tests/fixtures/*
+!tests/fixtures/README.md
