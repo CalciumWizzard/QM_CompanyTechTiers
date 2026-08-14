@@ -66,7 +66,29 @@
 	<Target Name="NoSteamIdMessage" Condition="'$(SteamId)'==''" AfterTargets="PostBuildEvent">
 		<Message Importance="high" Text="The SteamId is not set in the project.  Aborting Steam Workshop folder deployment." />
 	</Target>
-		
+
+	<!--
+		Quasimorph 1.0.1 never calls UserModSystem.LoadModifications, so there is no plain "Mods"
+		folder. LoadCustomPresets over LocalUserPresets is the only local path, and it reads
+		modmanifest.json and loads Assemblies exactly like a Workshop mod. A folder here with no
+		GameData/BinaryPresetsMap.json needs no RoomPresetNamespaceSlot.
+		Skip with: dotnet build -p:LocalDeploy=false
+	-->
+	<PropertyGroup>
+		<LocalDeploy Condition="'$(LocalDeploy)'==''">true</LocalDeploy>
+		<!-- $(TargetName) is undefined during evaluation; $(AssemblyName) is not. -->
+		<LocalPresetsPath>$(LOCALAPPDATA)\..\LocalLow\Magnum Scriptum Ltd\Quasimorph\LocalUserPresets\$(AssemblyName)\</LocalPresetsPath>
+	</PropertyGroup>
+
+	<Target Name="LocalPresetsDeploy" Condition="'$(LocalDeploy)'=='true'" AfterTargets="ModBaseItems">
+		<ItemGroup>
+			<LocalDeploySource Include="$(TargetDir)*.dll;$(TargetDir)modmanifest.json;$(TargetDir)thumbnail.png" />
+		</ItemGroup>
+		<MakeDir Directories="$(LocalPresetsPath)" />
+		<Copy SourceFiles="@(LocalDeploySource)" DestinationFolder="$(LocalPresetsPath)" />
+		<Message Importance="high" Text="Deployed locally to $(LocalPresetsPath)" />
+	</Target>
+
 	<Target Name="SteamWorkshopDeploy" Condition="'$(SteamId)'!=''" AfterTargets="PostBuildEvent">
 		<ItemGroup>
 			<BuildSource Include="$(TargetDir)/*.*" />

@@ -118,10 +118,15 @@ icon would be worse than a shared one.
 
 ### Names
 
-`Localization.DuplicateKey(old, copy)` is public static and copies a key across all 11 languages. For
-each new id, duplicate `item.<parent>.name`, `.shortdesc` and `.desc`, then append a
-language-neutral roman numeral: `I`, `II`, `III`. The parent chip's display name gains `III` so the
-set reads as a series. Ids are never changed.
+`Localization.DuplicateKey` is public static but cannot alter a value — it only copies a key verbatim,
+which does not let the new tiers carry distinguishing names. Instead, the `localization` table itself
+is loaded through `CustomResources.Load("localization")` as resource #529, comfortably after the
+`ResourcesLoad` hook is armed, so it is intercepted and rewritten the same way as the other config
+resources. For each new id, the rewriter duplicates `item.<parent>.name`, `.shortdesc` and `.desc` in
+every language, then appends a language-neutral roman numeral: `I`, `II`, `III`. The parent chip's
+display name gains `III` so the set reads as a series. Ids are never changed. This is implemented as a
+pure, unit-tested rewriter rather than untestable Unity code (`Localization.db` is private with no
+public setter), and it means no Harmony patching is needed anywhere in this mod.
 
 ## Configuration
 
@@ -146,20 +151,27 @@ make company tech roughly 74% of all chip rewards at level 3. Setting `InheritPa
 
 ## Module structure
 
-The rewrite is pure string → string and testable without launching the game.
+The rewrite is pure string → string and testable without launching the game. The spec originally
+planned six files; the implementation split the single `ConfigRewriter.cs` into four focused
+rewriters (roughly 80 lines each, one per config resource) and dropped the planned
+`LocalizationPatch.cs` entirely, since naming turned out to be a pure rewriter rather than Unity-side
+patching (see Names, above).
 
 | File | Responsibility | Depends on |
 |------|----------------|------------|
-| `ConfigTable.cs` | Parse and serialize the `#section` / header / rows / `#end` TSV format | nothing |
-| `ChipTierPlan.cs` | Config text in, tier assignment out. Pure, no Unity types | `ConfigTable` |
-| `ConfigRewriter.cs` | Apply a plan to each of the three config texts | `ConfigTable`, `ChipTierPlan` |
-| `ResourceHook.cs` | `ResourcesLoad` dispatch, `TextAsset` construction, descriptor cloning | `ConfigRewriter`, Unity |
-| `LocalizationPatch.cs` | `DuplicateKey` calls and tier suffixes | Unity |
-| `Plugin.cs` | Hook registration, config load, logging | all |
+| `Configs/ConfigDocument.cs` | Parse and serialize the `#section` / header / rows / `#end` TSV format | nothing |
+| `Tiering/ChipTierPlan.cs` | Config text in, tier assignment out. Pure, no Unity types | `ConfigDocument` |
+| `Rewriting/ItemsRewriter.cs` | Emit tier rows in `config_items`, narrow the parent's `UnlockIds` | `ConfigDocument`, `ChipTierPlan` |
+| `Rewriting/FactionDropsRewriter.cs` | Insert tier-1/tier-2 reward entries into `config_faction_drops` | `ConfigDocument`, `ChipTierPlan` |
+| `Rewriting/CraftingRewriter.cs` | Remap `ModifyItemsGrades` company-chip costs in `config_crafting` | `ConfigDocument`, `ChipTierPlan` |
+| `Rewriting/LocalizationRewriter.cs` | Duplicate localization keys and append tier suffixes | `ChipTierPlan` |
+| `ModSettings.cs` | User-tunable settings, JSON load/save, validation | nothing (no Unity types) |
+| `ResourceHook.cs` | `ResourcesLoad` dispatch, `TextAsset` construction, descriptor cloning | the four rewriters, `ChipTierPlan`, Unity |
+| `Plugin.cs` | Hook registration, config load, logging | `ModSettings`, `ResourceHook`, `MGSC` |
 
-Only `ResourceHook`, `LocalizationPatch` and `Plugin` touch Unity or `MGSC`. `ConfigTable`,
-`ChipTierPlan` and `ConfigRewriter` are plain .NET and can be exercised against the captured config
-dump directly.
+Only `ResourceHook.cs` and `Plugin.cs` touch Unity or `MGSC`. `ConfigDocument`, `ChipTierPlan`,
+`ModSettings` and the four rewriters are plain .NET and are exercised directly against the captured
+config dump in `tests/fixtures/`.
 
 ## Testing
 
@@ -170,7 +182,7 @@ note on regenerating them instead.
 
 **Unit, against the fixture, no game required:**
 
-1. `ConfigTable` round-trips every dumped config byte-for-byte.
+1. `ConfigDocument` round-trips every dumped config byte-for-byte.
 2. Discovery finds exactly the 12 known company chips and no generic chip.
 3. Partition sizes match the table above.
 4. Every id in a parent chip's original `UnlockIds` appears in exactly one tier — no loss, no

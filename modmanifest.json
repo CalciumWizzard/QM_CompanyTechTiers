@@ -3,5 +3,9 @@
   "Assemblies": [
     "QM_CompanyTechTiers.dll"
   ],
-  "Dependencies": []
+  "Dependencies": [],
+  "SteamTags": [
+    "1.0",
+    "Gameplay Tweaks"
+  ]
 }

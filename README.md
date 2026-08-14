@@ -1,23 +1,80 @@
-# Quasimorph QM_CompanyTechTiers
+# Quasimorph Company Tech Tiers
 
 ![thumbnail icon](media/thumbnail.png)
 
-# Configuration
+## What it does
 
-The configuration file will be created on the first game run and can be found at `%AppData%\..\LocalLow\Magnum Scriptum Ltd\Quasimorph_ModConfigs\QM_CompanyTechTiers\config.json`.
+Quasimorph's generic research datadisks (`low_chip`, `medium_chip`, `high_chip`) unlock items in three
+tiers, offered as faction rewards at tech levels 1, 4 and 7. Company chips have no such breakdown:
+each of the twelve companies has one monolithic chip, always `TechLevel` 10, offered only at maximum
+faction standing — even though the items it unlocks span the whole tech range. `anc_chip`, for
+example, unlocks items from tech level 2 to 10, so a company's entry-level pistol is gated behind
+maximum standing with that company.
 
-|Name|Default|Description|
-|--|--|--|
-|FooKey|true|Some Description|
+This mod splits each company chip into three tiers, mirroring the generic chips' breakdown, and offers
+them as faction rewards earlier:
 
-## Key List
-The list of valid keyboard keys can be found  at the bottom of https://docs.unity3d.com/ScriptReference/KeyCode.html
-Beware that numbers 0-9 are Alpha0 - Alpha9.  Most of the other keys are as expected such as X for X.
-Use "None" to not bind the key.
+| Tier | New/existing id | Unlocks | Offered at faction level |
+|------|------------------|---------|---------------------------|
+| I | `<company>_chip_low` (new) | items tech level 1–3 | 3 |
+| II | `<company>_chip_mid` (new) | items tech level 4–6 | 6 |
+| III | `<company>_chip` (existing id, unlocks narrowed) | items tech level 7+ | 10 |
 
-# Buy Me a Coffee
-If you enjoy my mods and want to buy me a coffee, check out my [Ko-Fi](https://ko-fi.com/nbkredspy71915) page.
-Thanks!
+Upgrade costs (`ModifyItemsGrades` in `config_crafting`) are remapped so a low-tech item unlocked at
+level 3 can also be upgraded at level 3, instead of requiring the level-10 chip.
 
-# Source Code
+Everything is derived from the live game config at load time — no item ids, faction names, chip ids or
+tech levels are hardcoded. The mod intercepts `config_items`, `config_faction_drops`, `config_crafting`
+and `localization` through the game's `ResourcesLoad` mod hook before `ConfigLoader` parses them, and
+returns rewritten text; on any unexpected input it logs a warning and falls back to the stock resource,
+so a game update that changes the config format disables the mod rather than corrupting anything.
+
+## Configuration
+
+Written to `%LOCALAPPDATA%\..\LocalLow\Magnum Scriptum Ltd\Quasimorph\Quasimorph_ModConfigs\QM_CompanyTechTiers\config.json`
+on first run.
+
+| Key | Default | Meaning |
+|-----|---------|---------|
+| `RewardLevels` | `[3, 6, 10]` | Faction tech level at which each tier is offered |
+| `TierBoundaries` | `[3, 6]` | Item tech level at which tier 1 ends and tier 2 ends |
+| `TierPrices` | `[400, 525, 650]` | `Price` for each tier (index 2 is the parent chip's existing price) |
+| `TierTechLevels` | `[1, 4, 10]` | `TechLevel` field written on each tier's datadisk row (index 2 is the parent's existing value) |
+| `TierSuffixes` | `[" I", " II", " III"]` | Appended to each tier's display name in every language |
+| `WeightDonorIds` | `["low_chip", "medium_chip"]` | Generic chip ids whose drop weight each new tier borrows by default |
+| `RemapUpgradeCosts` | `true` | Whether `config_crafting` upgrade costs are rewritten to the matching tier |
+| `InheritParentDropWeight` | `false` | If `true`, new tiers use the parent company chip's own drop weight instead of the generic chip's (see below) |
+| `DumpConfigsOnLoad` | `false` | Writes the game's raw config text next to this file, for regenerating test fixtures |
+
+**Drop weights.** By default, tier 1 and tier 2 reward-table entries take the drop weight of the
+generic chip in the same bracket (`low_chip` / `medium_chip`), not the parent company chip's own
+weight. Company chip entries carry weight 115 while a level-3 reward pool totals roughly 40, so
+inheriting the parent's weight directly would make company tech about 74% of all chip rewards at
+level 3. Set `InheritParentDropWeight` to `true` to restore that behaviour instead.
+
+## Install
+
+Build with `dotnet build -c Release` from `src/`. The build automatically deploys the assembly,
+manifest and thumbnail to the local mod-load folder:
+
+```
+%LOCALAPPDATA%\..\LocalLow\Magnum Scriptum Ltd\Quasimorph\LocalUserPresets\QM_CompanyTechTiers\
+```
+
+Quasimorph 1.0.1+ never calls `UserModSystem.LoadModifications`, so there is no plain `Mods` folder —
+`LocalUserPresets` is the only local (non-Workshop) load path, and it works because `LoadCustomPresets`
+routes through the same loader as Workshop mods. Pass `-p:LocalDeploy=false` to skip this step.
+
+## Known risks
+
+- **Save compatibility.** Saves created with the mod contain the new item ids (`<company>_chip_low`,
+  `<company>_chip_mid`). Removing the mod later leaves unknown ids in the save. Unlocks already granted
+  stay granted; the mod does not migrate existing saves.
+- **Conflicts with other config-rewriting mods.** Any other mod that rewrites `config_items`,
+  `config_faction_drops` or `config_crafting` wholesale (rather than patching parsed data) can conflict
+  with this one, since both mods compete over the same raw config text. Mods that patch parsed data
+  after load are unaffected.
+
+## Source
+
 Source code is available on GitHub at https://github.com/babyak/QM_CompanyTechTiers
