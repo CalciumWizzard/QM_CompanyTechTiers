@@ -52,6 +52,46 @@ namespace QM_CompanyTechTiers.Tests
         }
 
         [Fact]
+        public void Reports_LoadProblem_on_malformed_json()
+        {
+            string path = TempPath();
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, "{ this is not json");
+
+            var settings = ModSettings.LoadOrCreate(path);
+            Assert.NotNull(settings.LoadProblem);
+            Assert.Contains(path, settings.LoadProblem);
+        }
+
+        [Fact]
+        public void LoadProblem_is_null_after_a_normal_load_of_a_valid_file()
+        {
+            string path = TempPath();
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, "{ \"RewardLevels\": [2, 5, 10] }");
+
+            var settings = ModSettings.LoadOrCreate(path);
+            Assert.Null(settings.LoadProblem);
+        }
+
+        [Fact]
+        public void LoadProblem_is_null_on_fresh_creation_when_the_file_is_absent()
+        {
+            var settings = ModSettings.LoadOrCreate(TempPath());
+            Assert.Null(settings.LoadProblem);
+        }
+
+        [Fact]
+        public void The_file_written_on_first_run_does_not_contain_a_LoadProblem_key()
+        {
+            string path = TempPath();
+            ModSettings.LoadOrCreate(path);
+
+            string written = File.ReadAllText(path);
+            Assert.DoesNotContain("LoadProblem", written);
+        }
+
+        [Fact]
         public void Validate_rejects_out_of_order_levels_and_bad_array_lengths()
         {
             var settings = ModSettings.LoadOrCreate(TempPath());

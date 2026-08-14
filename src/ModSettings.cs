@@ -36,8 +36,16 @@ namespace QM_CompanyTechTiers
         /// <summary>Write the game's raw config text next to this file, for regenerating test fixtures.</summary>
         public bool DumpConfigsOnLoad = false;
 
+        /// <summary>
+        /// Non-null when LoadOrCreate could not use the config file and substituted defaults.
+        /// Describes what went wrong, for the caller to log. Never serialized.
+        /// </summary>
+        [JsonIgnore]
+        public string LoadProblem { get; private set; }
+
         public static ModSettings LoadOrCreate(string path)
         {
+            string readProblem = null;
             try
             {
                 if (File.Exists(path))
@@ -46,20 +54,23 @@ namespace QM_CompanyTechTiers
                     if (loaded != null) return loaded;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Malformed config must not stop the mod loading; defaults are written below.
+                readProblem = "Could not read or parse config at '" + path + "', using defaults: " + ex.Message;
             }
 
             var settings = new ModSettings();
+            settings.LoadProblem = readProblem;
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
                 File.WriteAllText(path, JsonConvert.SerializeObject(settings, Formatting.Indented));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // A read-only location is survivable - carry on with in-memory defaults.
+                settings.LoadProblem = "Could not write default config to '" + path + "': " + ex.Message;
             }
             return settings;
         }
