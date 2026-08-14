@@ -14,20 +14,19 @@ namespace QM_CompanyTechTiers.Rewriting
     {
         private const string ChipTableSuffix = "_rewardChips";
 
-        /// <summary>Generic chip whose drop weight each tier borrows when not inheriting the parent's.</summary>
-        private static readonly Dictionary<Tier, string> WeightDonor = new Dictionary<Tier, string>
-        {
-            { Tier.Low, "low_chip" },
-            { Tier.Mid, "medium_chip" },
-        };
-
+        /// <summary>
+        /// <paramref name="rewardLevels"/> is length-3 (default <c>{3, 6, 10}</c>); parent entries are
+        /// located by matching <c>ContentIds</c> against a known chip's parent id, not by tech level, so
+        /// index 2 is never read.
+        /// </summary>
         public static string Rewrite(string dropsText, ChipTierPlan plan, int[] rewardLevels,
-                                     int[] tierPrices, bool inheritParentDropWeight)
+                                     int[] tierPrices, string[] weightDonorIds, bool inheritParentDropWeight)
         {
             if (dropsText == null) throw new ArgumentNullException(nameof(dropsText));
             if (plan == null) throw new ArgumentNullException(nameof(plan));
             if (rewardLevels == null || rewardLevels.Length < 3) throw new ArgumentException("Need 3 levels.", nameof(rewardLevels));
             if (tierPrices == null || tierPrices.Length < 3) throw new ArgumentException("Need 3 prices.", nameof(tierPrices));
+            if (weightDonorIds == null || weightDonorIds.Length < 2) throw new ArgumentException("Need 2 weight donor ids.", nameof(weightDonorIds));
 
             var document = ConfigDocument.Parse(dropsText);
 
@@ -59,7 +58,7 @@ namespace QM_CompanyTechTiers.Rewriting
                         cells[contentCol] = chip.IdFor(tier);
                         if (weightCol >= 0)
                             cells[weightCol] = ResolveWeight(section, parentRow, tier, contentCol, weightCol,
-                                                             inheritParentDropWeight);
+                                                             weightDonorIds, inheritParentDropWeight);
                         if (pointsCol >= 0) cells[pointsCol] = tierPrices[(int)tier].ToString();
 
                         section.InsertRowAfter(parentRow, cells);
@@ -71,13 +70,12 @@ namespace QM_CompanyTechTiers.Rewriting
         }
 
         private static string ResolveWeight(ConfigSection section, ConfigRow parentRow, Tier tier,
-                                            int contentCol, int weightCol, bool inheritParent)
+                                            int contentCol, int weightCol, string[] weightDonorIds,
+                                            bool inheritParent)
         {
             if (inheritParent) return parentRow.Get(weightCol);
 
-            string donorId;
-            if (!WeightDonor.TryGetValue(tier, out donorId)) return parentRow.Get(weightCol);
-
+            string donorId = weightDonorIds[(int)tier];
             var donor = section.Rows.FirstOrDefault(r => r.Get(contentCol) == donorId);
             return donor != null ? donor.Get(weightCol) : parentRow.Get(weightCol);
         }

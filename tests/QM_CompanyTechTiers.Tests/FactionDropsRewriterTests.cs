@@ -10,12 +10,13 @@ namespace QM_CompanyTechTiers.Tests
     {
         private static readonly int[] Levels = { 3, 6, 10 };
         private static readonly int[] Prices = { 400, 525, 650 };
+        private static readonly string[] WeightDonorIds = { "low_chip", "medium_chip" };
 
         private static ChipTierPlan Plan() =>
             ChipTierPlan.Build(ConfigDocument.Parse(Fixtures.Items), 3, 6);
 
         private static string Rewritten(bool inherit = false) =>
-            FactionDropsRewriter.Rewrite(Fixtures.FactionDrops, Plan(), Levels, Prices, inherit);
+            FactionDropsRewriter.Rewrite(Fixtures.FactionDrops, Plan(), Levels, Prices, WeightDonorIds, inherit);
 
         private static int CountChipEntries(ConfigSection section, string chipId)
         {
