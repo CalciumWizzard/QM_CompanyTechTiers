@@ -87,6 +87,59 @@ namespace QM_CompanyTechTiers.Tests
             Assert.Equal(once, twice);
         }
 
+        /// <summary>
+        /// `Is_idempotent` above only pins the no-op path: when every target key already exists,
+        /// `Rewrite` returns the original string unchanged and never touches `lines` at all, so the
+        /// "skip cells that already end with the suffix" guard inside `SuffixLanguages` is never
+        /// exercised. The guard actually matters when a *later* run has new work to append (e.g. a
+        /// 13th company chip shows up) and therefore fully re-serializes `lines`, including the
+        /// already-suffixed parent rows from the first pass. This test forces that path.
+        /// </summary>
+        [FixtureFact]
+        public void Second_run_with_a_larger_chip_set_does_not_double_suffix_already_tiered_parents()
+        {
+            var plan = Plan();
+            string once = LocalizationRewriter.Rewrite(Fixtures.LocalizationTable, plan, Suffixes);
+
+            // Grow the chip roster: clone an existing datadisk row as a brand-new company chip so
+            // plan2.Chips is a strict superset of plan.Chips.
+            var doc = ConfigDocument.Parse(Fixtures.Items);
+            var datadisks = doc.Section("datadisks");
+            int idCol = datadisks.ColumnIndex("Id");
+            int categoriesCol = datadisks.ColumnIndex("Categories");
+            int unlockCol = datadisks.ColumnIndex("UnlockIds");
+            var template = datadisks.Rows.First(r => !r.IsBlank && r.Get(idCol).Length > 0);
+
+            const string newChipId = "zzz_synthetic_extra_chip";
+            var newRow = Enumerable.Repeat(string.Empty, datadisks.Columns.Count).ToArray();
+            newRow[idCol] = newChipId;
+            newRow[categoriesCol] = "";   // must not contain the generic "Chip" token
+            newRow[unlockCol] = "";
+            datadisks.InsertRowAfter(template, newRow);
+
+            var plan2 = ChipTierPlan.Build(doc, 3, 6);
+            Assert.Equal(plan.Chips.Count + 1, plan2.Chips.Count);
+            var newChip = plan2.ChipByParentId(newChipId);
+
+            // The new chip needs its own pre-existing name row for the second Rewrite call to have
+            // anything to append (and thus take the full-serialization path, not the early return).
+            string extraNameRow =
+                "item." + newChipId + ".name\tSynthetic Chip" + new string('\t', 16);
+            string onceWithNewChip = once + "\r\n" + extraNameRow;
+
+            string twice = LocalizationRewriter.Rewrite(onceWithNewChip, plan2, Suffixes);
+
+            // Proof the full-serialization branch actually ran, not the appended.Count == 0 shortcut.
+            Assert.True(Has(twice, "item." + newChip.IdFor(Tier.Low) + ".name"));
+
+            // Every parent already suffixed in the first pass must come through unchanged.
+            foreach (var chip in plan.Chips)
+            {
+                string key = "item." + chip.ParentId + ".name";
+                Assert.Equal(Row(onceWithNewChip, key), Row(twice, key));
+            }
+        }
+
         [FixtureFact]
         public void Leaves_unrelated_rows_and_column_count_alone()
         {
@@ -100,7 +153,7 @@ namespace QM_CompanyTechTiers.Tests
                 Assert.Equal(18, line.TrimEnd('\r').Split('\t').Length);
         }
 
-        [Fact]
+        [FixtureFact]
         public void Handles_a_parent_with_no_desc_facet()
         {
             var plan = ChipTierPlan.Build(ConfigDocument.Parse(Fixtures.Items), 3, 6);
