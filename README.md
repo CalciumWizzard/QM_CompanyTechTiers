@@ -102,15 +102,46 @@ Quasimorph 1.0.1+ never calls `UserModSystem.LoadModifications`, so there is no 
 `LocalUserPresets` is the only local (non-Workshop) load path, and it works because `LoadCustomPresets`
 routes through the same loader as Workshop mods. Pass `-p:LocalDeploy=false` to skip this step.
 
+## Compatibility with other mods
+
+**This mod plays nicely with other config-rewriting mods, in either load order.**
+
+That was not always true. The game offers a `ResourcesLoad` hook for replacing a resource before it
+is parsed, but `CustomResources.Load` walks the registered hooks and returns the **first non-null**
+answer:
+
+```csharp
+foreach (MethodInfo hook in _hooks)
+{
+    object obj = hook.Invoke(null, _parametersCached);
+    if (obj != null) { ... return result; }
+}
+return Resources.Load(path);
+```
+
+So whichever mod loads first owns a config path outright, and every later mod is never asked for it —
+with no error and nothing in the log. While this mod used that hook it silently disabled any other mod
+that rewrote `config_items`, `config_faction_drops`, `config_crafting` or `localization`, and was
+equally liable to be silenced by one that loaded earlier.
+
+It now applies its changes through a Harmony **postfix** on `CustomResources.Load` instead. That runs
+after every hook, receives whatever they produced, and adds to it — so load order stops mattering and
+any number of rewriting mods compose. Mods that patch parsed data after load were never affected
+either way.
+
+If you write a Quasimorph mod that rewrites configs, the same postfix approach will save you this
+whole class of bug.
+
 ## Known risks
 
 - **Save compatibility.** Saves created with the mod contain the new item ids (`<company>_chip_low`,
   `<company>_chip_mid`). Removing the mod later leaves unknown ids in the save. Unlocks already granted
   stay granted; the mod does not migrate existing saves.
-- **Conflicts with other config-rewriting mods.** Any other mod that rewrites `config_items`,
-  `config_faction_drops` or `config_crafting` wholesale (rather than patching parsed data) can conflict
-  with this one, since both mods compete over the same raw config text. Mods that patch parsed data
-  after load are unaffected.
+- **A failed rewrite can leave a partial result.** The config files are handed over one at a time, and
+  `config_items` is served before `localization` is even requested, so a failure on a later file cannot
+  undo an earlier success. If that happens the mod goes inert for the rest of the session and the log
+  names exactly which files were already rewritten; restarting the game returns everything to stock.
+  The symptom to look for is chips showing raw ids such as `item.anc_chip_low.name` instead of names.
 
 ## Source
 
