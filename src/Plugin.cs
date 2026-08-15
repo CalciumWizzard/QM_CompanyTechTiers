@@ -1,17 +1,21 @@
+using System;
 using System.IO;
+using HarmonyLib;
 using MGSC;
 
 namespace QM_CompanyTechTiers
 {
     public static class Plugin
     {
+        public const string HarmonyId = "QM_CompanyTechTiers";
+
         public static ConfigDirectories ConfigDirectories = new ConfigDirectories();
         public static Logger Logger = new Logger();
         public static ModSettings Settings { get; private set; }
 
         /// <summary>
         /// Runs before Data.Load(), which is where ConfigLoader reads every config resource.
-        /// The ResourcesLoad hook must be armed by then.
+        /// The CustomResources.Load patch must be armed by then.
         /// </summary>
         [Hook(ModHookType.BeforeBootstrap)]
         public static void BeforeBootstrap(IModContext context)
@@ -34,6 +38,36 @@ namespace QM_CompanyTechTiers
                 Logger.Log,
                 Logger.LogWarning);
 
+            try
+            {
+                var harmony = new Harmony(HarmonyId);
+
+                // Deliberately not PatchAll: that aborts on the first patch class that fails, so one
+                // broken target would take every other patch down with it.
+                foreach (Type type in AccessTools.GetTypesFromAssembly(typeof(Plugin).Assembly))
+                {
+                    try
+                    {
+                        harmony.CreateClassProcessor(type).Patch();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("Patch class " + type.Name + " failed to apply.");
+                        Logger.LogException(ex);
+                    }
+                }
+
+                foreach (var method in harmony.GetPatchedMethods())
+                    Logger.Log("Patched " + method.DeclaringType.Name + "." + method.Name + ".");
+            }
+            catch (Exception ex)
+            {
+                // A patch target a game update renamed must degrade to "mod does nothing", not to
+                // "game will not start".
+                Logger.LogError("Harmony patching failed; chip tiers are disabled for this session.");
+                Logger.LogException(ex);
+            }
+
             Logger.Log("Armed. Config at " + ConfigDirectories.ConfigPath + "; sprites from " + spritesFolder);
         }
 
@@ -51,10 +85,9 @@ namespace QM_CompanyTechTiers
             return Path.GetDirectoryName(typeof(Plugin).Assembly.Location) ?? string.Empty;
         }
 
-        [Hook(ModHookType.ResourcesLoad)]
-        public static UnityEngine.Object ResourcesLoad(string path)
-        {
-            return ResourceHook.Load(path);
-        }
+        // No [Hook(ModHookType.ResourcesLoad)] here on purpose. That hook is first-answer-wins, so
+        // using it made this mod silently disable every other config-rewriting mod that loaded after
+        // it - and left it liable to be disabled itself by one that loaded first. See
+        // Patches/CustomResourcesLoadPatch.
     }
 }
